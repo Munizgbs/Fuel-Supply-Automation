@@ -1,0 +1,2 @@
+# Fuel Supply Automation
+This project is a backend application developed in Python using FastAPI, which simulates a modern automated fuel dispensing system inspired by the self-service model adopted in countries such as the United States, Canada, and various regions of Europe. In these systems, the customer performs the entire process themselves - from payment to pump activation - without the need for an attendant.
