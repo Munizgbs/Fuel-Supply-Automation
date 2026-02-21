@@ -1,6 +1,3 @@
-def main():
-    print("Hello from fuel-supply-automation!")
+from fastapi from FastAPI
 
-
-if __name__ == "__main__":
-    main()
+app = FastAPI()
