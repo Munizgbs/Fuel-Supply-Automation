@@ -14,7 +14,7 @@ class User(Base):
     name = Column("name", String)
     password = Column("password", String)
     cashback = Column("cashback", Float)
-    administrator = Column("administrator?", Boolean)
+    administrator = Column("administrator", Boolean, default=0.0)
 
     def __init__(self, email, name, password, administrator=False):
         self.email = email
@@ -23,10 +23,10 @@ class User(Base):
         self.administrator = administrator
 
 class Service(Base):
-    __tablename__ = "service"
+    __tablename__ = "services"
 
     id_service = Column("id_service", Integer, primary_key=True, autoincrement=True)
-    id_user = Column("id", Integer, ForeignKey("users.id"))
+    id_user = Column("id_user", Integer, ForeignKey("users.id"))
     fuel_type = Column("fuel_type", String)
     liters = Column("liters", Integer)
     value = Column("value", Float)
