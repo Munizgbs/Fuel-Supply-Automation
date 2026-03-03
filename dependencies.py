@@ -6,5 +6,6 @@ def UseSession():
         Session = sessionmaker(bind=db)
         session = Session()
         yield session
-    finally
+    finally:
         session.close()
+    

@@ -1,27 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import UserSchemas
+from schemas import UserSchema
 from sqlalchemy.orm import Session
 from dependencies import UseSession
+from main import bcrypt_context
 from models import User
 
 auth_router = APIRouter(prefix="/authenticator", tags=["authenticator"])
 
+def create_token():
+    pass
+
 def authenticate(email, password, session):
-    user = session.query(User).filter(User.email=email).first()
+    user = session.query(User).filter(User.email==email).first()
     if not user:
         return False
-    else:
-        return user
+    elif not bcrypt_context.verify(password, User.password):
+        return False
+    return user
 
 
 @auth_router.post("/register")
-async def register(user_schema: UserSchemas, session: Session=Depends(UseSession)):
+async def register(user_schema: UserSchema, session: Session=Depends(UseSession)):
     user = authenticate(user_schema.email)
     if user:
-        raise HTTPException(status_Code=400, detail="This email address is already in use.")
+        raise HTTPException(status_code=400, detail="This email address is already in use.")
     else:
-        new_user = User(user_schema.name, user_schema.email, user_schema.password, user_schema.administrator)
+        encrypted_password = bcrypt_context.hash(user_schema.password)
+        new_user = User(user_schema.name, user_schema.email, encrypted_password)
         session.add(new_user)
         session.commit()
-        return HTTPException(status_code=200, detail="Your registration has been completed.")
+        return {"message": "Your registration has been completed."}
+
+@auth_router.post("/login")
+async def login (user_schema: UserSchema, session: Session=Depends(UseSession)):
     
+#login -> email e senha -> token JWT
