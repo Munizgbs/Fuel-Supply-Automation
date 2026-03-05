@@ -13,8 +13,8 @@ class User(Base):
     email = Column("email", String, unique=True)
     name = Column("name", String)
     password = Column("password", String)
-    cashback = Column("cashback", Float)
-    administrator = Column("administrator", Boolean, default=0.0)
+    cashback = Column("cashback", Float, default=0.0)
+    administrator = Column("administrator", Boolean, default=False)
 
     def __init__(self, email, name, password, administrator=False):
         self.email = email
@@ -31,3 +31,21 @@ class Service(Base):
     liters = Column("liters", Integer)
     value = Column("value", Float)
     date = Column("date", DateTime, default=datetime.utcnow)
+    status = Column("status", String, default="PENDING")
+
+    def __init__(self, fuel_type, liters, status):
+        self.fuel_type = fuel_type
+        self.liters = liters
+        self.value = self.price()
+        self.status = status
+
+    def price(self):
+        prices = {
+            "GASOLINE": 6.31,
+            "DIESEL": 6.12,
+            "ETHANOL": 4.64
+        }
+        return self.liters * prices.get(self.fuel_type, 0)
+                 
+
+Base.metadata.create_all(db)

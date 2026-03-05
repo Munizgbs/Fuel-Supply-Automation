@@ -10,26 +10,26 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 auth_router = APIRouter(prefix="/authenticator", tags=["authenticator"])
 
-def create_token(user_id, time_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE)):
-    expiration = datetime.now(timezone.utc) + timedelta(time_token)
-    information = {"sub": str(User.id), "exp": expiration}
-    encoded = jwt.encode(information, SECRET_KEY, ALGORITHM)
+def create_token(id_user, time_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE)):
+    expiration = datetime.now(timezone.utc) + time_token
+    information = {"sub": str(id_user), "exp": expiration}
+    encoded = jwt.encode(information, SECRET_KEY, algorithm=[ALGORITHM])
     return encoded
 
 
 def authenticate(email, password, session):
     user = session.query(User).filter(User.email==email).first()
     if not user:
-        return False
-    elif not bcrypt_context.verify(password, User.password):
-        return False
+        return None
+    elif not bcrypt_context.verify(password, user.password):
+        return None
     return user
 
 
 @auth_router.post("/register")
 async def register(user_schema: UserSchema, session: Session=Depends(use_session)):
-    user = authenticate(user_schema.email)
-    if user:
+    existing_user = session.query(User).filter(User.email == user_schema.email).first()
+    if existing_user:
         raise HTTPException(status_code=400, detail="This email address is already in use.")
     else:
         encrypted_password = bcrypt_context.hash(user_schema.password)
@@ -44,10 +44,10 @@ async def login(user_schema: UserSchema, session: Session=Depends(use_session)):
     if not user:
         raise HTTPException(status_code=400, detail="The user was not found or the credentials are invalid.")
     else:
-        access_token = create_token(User.id)
-        refresh_token = create_token(User.id, time_token=timedelta(days=7))
+        access_token = create_token(user.id)
+        refresh_token = create_token(user.id, time_token=timedelta(days=7))
         return {
-            "acess_token": access_token,
+            "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "Bearer"
             }
@@ -59,16 +59,17 @@ async def form(form: OAuth2PasswordRequestForm=Depends(), session: Session=Depen
     if not user:
         raise HTTPException(status_code=400, detail="The user was not found or the credentials are invalid.")
     else:
-        access_token = create_token(User.id)
-        refresh_token = create_token(User.id, time_token=timedelta(days=7))
+        access_token = create_token(user.id)
+        refresh_token = create_token(user.id, time_token=timedelta(days=7))
         return {
             "acess_token": access_token,
+            "refresh_token": refresh_token,
             "token_type": "Bearer"
             }
 
 @auth_router.get("/refresh")
 async def refresh(user: User=Depends(verification)):
-    access_token = create_token()
+    access_token = create_token(user.id)
     return {
             "acess_token": access_token,
             "token_type": "Bearer"
