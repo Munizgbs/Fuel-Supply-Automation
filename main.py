@@ -12,12 +12,14 @@ ACCESS_TOKEN_EXPIRE = int(os.getenv("ACCESS_TOKEN_EXPIRE"))
 
 app = FastAPI()
 
-bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_schema = OAuth2PasswordBearer(tokenUrl="auth/form")
+Base.metadata.create_all(bind=db)
 
-from auth_routes import auth_router
-from user_routes import user_router
-from admin_routes import admin_router
+bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+oauth2_schema = OAuth2PasswordBearer(tokenUrl="authenticator/form")
+
+from Routers.auth import auth_router
+from Routers.user import user_router
+from Routers.admin import admin_router
 
 app.include_router(auth_router)
 app.include_router(user_router)

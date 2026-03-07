@@ -12,9 +12,9 @@ auth_router = APIRouter(prefix="/authenticator", tags=["authenticator"])
 
 def create_token(id_user, time_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE)):
     expiration = datetime.now(timezone.utc) + time_token
-    information = {"sub": str(id_user), "exp": expiration}
-    encoded = jwt.encode(information, SECRET_KEY, algorithm=[ALGORITHM])
-    return encoded
+    information = {"sub": str(id_user), "exp": expiration, "type": "access"}
+    encoded = jwt.encode(information, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded, {"message": "User created successfully"}
 
 
 def authenticate(email, password, session):
@@ -62,7 +62,7 @@ async def form(form: OAuth2PasswordRequestForm=Depends(), session: Session=Depen
         access_token = create_token(user.id)
         refresh_token = create_token(user.id, time_token=timedelta(days=7))
         return {
-            "acess_token": access_token,
+            "access_token": access_token,
             "refresh_token": refresh_token,
             "token_type": "Bearer"
             }
@@ -71,8 +71,7 @@ async def form(form: OAuth2PasswordRequestForm=Depends(), session: Session=Depen
 async def refresh(user: User=Depends(verification)):
     access_token = create_token(user.id)
     return {
-            "acess_token": access_token,
-            "token_type": "Bearer"
+            "access_token": access_token,
+            "token_type": "Bearer",
+            "type": "refresh"
             }
-
-#login -> email e senha -> token JWT

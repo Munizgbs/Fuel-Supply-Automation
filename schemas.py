@@ -2,8 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class UserSchema(BaseModel):
-    id: Optional[int] = None
-    name: Optional [str]
+    name: str
     email: str
     password: str
     admin: Optional [bool]
@@ -11,11 +10,16 @@ class UserSchema(BaseModel):
     class Config():
         from_attributes = True
 
+class LoginSchema(BaseModel):
+    email: str
+    password: str
+
+    class Config():
+        from_attributes =  True
+
 class ServiceSchema(BaseModel):
     fuel_type: str
-    user_id: int
     liters: float
-    value: float
 
     class Config():
         from_attributes = True

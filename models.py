@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey, DateTime
-from sqlalchemy.orm import declarative_base
-from datetime import datetime
+from sqlalchemy.orm import declarative_base, relationship
+from datetime import datetime, timezone
 
 db = create_engine("sqlite:///bank.db")
 
@@ -9,43 +9,52 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = "users"
 
-    id = Column("id", Integer, primary_key=True, autoincrement=True)
-    email = Column("email", String, unique=True)
-    name = Column("name", String)
-    password = Column("password", String)
-    cashback = Column("cashback", Float, default=0.0)
-    administrator = Column("administrator", Boolean, default=False)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    email = Column(String, unique=True)
+    cashback = Column(Float, default=0.0)
+    password = Column(String)
+    admin = Column(Boolean, default=False)
 
-    def __init__(self, email, name, password, administrator=False):
-        self.email = email
+
+    refuels = relationship("Refuel", back_populates="user")
+
+    def __init__(self, name, email, password, administrator=False):
         self.name = name
+        self.email = email
         self.password = password
         self.administrator = administrator
 
-class Service(Base):
-    __tablename__ = "services"
+class Refuel(Base):
+    __tablename__ = "refuels"
 
-    id_service = Column("id_service", Integer, primary_key=True, autoincrement=True)
-    id_user = Column("id_user", Integer, ForeignKey("users.id"))
-    fuel_type = Column("fuel_type", String)
-    liters = Column("liters", Integer)
-    value = Column("value", Float)
-    date = Column("date", DateTime, default=datetime.utcnow)
-    status = Column("status", String, default="PENDING")
+    id_request = Column(Integer, primary_key=True, autoincrement=True)
+    id_user = Column(Integer, ForeignKey("users.id"))
+    fuel_type = Column(String, default="UNKNOWN")
+    status = Column(String, default="PENDING")
+    bonus = Column(Float, default=0.0)
+    liters = Column(Float, default=0.0)
+    value = Column(Float, default=0.0)
+    date = Column(DateTime, datetime.now(timezone.utc))
 
-    def __init__(self, fuel_type, liters, status):
-        self.fuel_type = fuel_type
-        self.liters = liters
-        self.value = self.price()
+    user = relationship("User", back_populates="refuels")
+
+    def __init__(self, id_user, fuel_type="UNKNOWN", status="PENDING", liters=0.0):
+        self.id_user = id_user
+        self.fuel_type = fuel_type.upper().strip()
         self.status = status
+        self.liters = liters
 
     def price(self):
-        prices = {
-            "GASOLINE": 6.31,
-            "DIESEL": 6.12,
-            "ETHANOL": 4.64
+        FUEL_PRICES = {
+            "GASOLINE": 6.30,
+            "DIESEL": 6.08,
+            "ETHANOL": 4.63
         }
-        return self.liters * prices.get(self.fuel_type, 0)
-                 
 
-Base.metadata.create_all(db)
+        if self.fuel_type in FUEL_PRICES:
+            self.value = FUEL_PRICES[self.fuel_type] * self.liters
+            self.bonus = self.value * 0.05
+        else:
+            raise ValueError("That type of fuel is not provided by the gas station.")
+            
