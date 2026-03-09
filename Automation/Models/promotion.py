@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from __init__ import Base
+from Database.base import Base
 
 class Promotion(Base):
     __tablename__ = "promotions"

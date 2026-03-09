@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from __init__ import Base
+from Database.base import Base
 
 class Refuel(Base):
     __tablename__ = "refuels"
@@ -14,7 +14,7 @@ class Refuel(Base):
     additional_percentage = Column(Float, default=0.00)
     liters = Column(Float, default=0.0)
     value = Column(Float, default=0.0)
-    date = Column(DateTime, datetime.now(timezone.utc))
+    date = Column(DateTime, default=datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="refuels")
     payment = relationship("Payment", back_populates="refuels")
